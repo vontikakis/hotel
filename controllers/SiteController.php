@@ -58,23 +58,40 @@ class SiteController extends Controller
 
     /**
      * index.php?r=site/index
-     * GET request
-     * $startDate
-       $endDate
-     * @return string
+     * GET request with params 
      * http://corfu.localhost/index.php?r=site/index&startDate=2023-01-15&endDate=2023-01-25
-     */
+     * POST with json payload
+     *  /index.php?r=site/index
+     *  {
+     *    "startDate": "2023-01-15",
+     *     "endDate": "2023-01-25"
+     *  }
+    **/
     public function actionIndex()
     {
         $request = Yii::$app->request;
 
         try {
 
-            if ($request->isGet) {
+                if ($request->isGet) {
 
-                $startDate = $request->get('startDate');
-                $endDate = $request->get('endDate');
+                    $startDate = $request->get('startDate');
+                    $endDate = $request->get('endDate');
 
+                } elseif ($request->isPost) {
+               
+                    $requestBody = $request->rawBody;
+                    $requestBody = json_decode($requestBody,true) ;
+                    $startDate = $requestBody['startDate'];
+                    $endDate = $requestBody['endDate'];
+
+                } else {
+
+                    throw new \Exception('Not a proper request');
+                }
+
+
+           
                 if (empty($startDate) || empty($endDate)) {
 
                     throw new \Exception('Parameters Missing');
@@ -86,6 +103,7 @@ class SiteController extends Controller
                         throw new \Exception('Dates have problem');
                     }
 
+                    // generate single days
                     $result = $this->getPeriod($startDate, $endDate);
 
                     $rooms = Room::find()->all();
@@ -116,10 +134,7 @@ class SiteController extends Controller
                     ];
                 }
 
-                } else {
-
-                    throw new \Exception('Not a get request');
-                }
+  
 
         } catch (\Exception $e) {
                     
